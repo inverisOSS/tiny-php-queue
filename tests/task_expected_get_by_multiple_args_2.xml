@@ -1,0 +1,39 @@
+<?xml version="1.0" ?>
+<dataset>
+	<table name="queue">
+		<column>id</column>
+		<column>parent_id</column>
+		<column>queue_group</column>
+		<column>status</column>
+		<column>processor_id</column>
+		<column>created</column>
+		<column>first_processed</column>
+		<column>last_processed</column>
+		<column>times_executed</column>
+		<column>max_executions</column>
+		<column>timeout</column>
+		<column>executed</column>
+		<column>child_failed</column>
+		<column>break_on_child_fail</column>
+		<column>task_worker_class</column>
+		<column>meta_data</column>
+		<row>
+			<value>10</value>
+			<null />
+			<value>import</value>
+			<value>pending</value>
+			<value></value>
+			<value>2016-10-04 17:05:00</value>
+			<null />
+			<null />
+			<value>0</value>
+			<value>0</value>
+			<null />
+			<value>0</value>
+			<value>0</value>
+			<value>0</value>
+			<value>\inverisOSS\TinyPHPQueue\tests\DemoTaskWorker</value>
+			<value>{"file":"test.zip","log":["Log Entry 1","Log Entry 2"]}</value>
+		</row>
+	</table>
+</dataset>

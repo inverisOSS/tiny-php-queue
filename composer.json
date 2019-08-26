@@ -1,0 +1,17 @@
+{
+	"name": "inverisoss/tiny-php-queue",
+	"version": "1.0.0",
+	"require": {
+        "salsify/json-streaming-parser": "~6.0"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "^7",
+		"phpunit/dbunit": "^4.0"
+	},
+	"autoload": {
+		"psr-4": { "inverisOSS\\TinyPHPQueue\\": "src/" }
+	},
+	"autoload-dev": {
+		"psr-4": { "inverisOSS\\TinyPHPQueue\\tests\\": "tests/" }
+	}
+}
