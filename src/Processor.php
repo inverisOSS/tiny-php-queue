@@ -81,7 +81,7 @@ class Processor
             return;
         }
 
-        if (! $task->getExecuted()) {
+        if (!$task->getExecuted()) {
             $task->incrementTimesExecuted();
             $taskMapper->save($task);
 

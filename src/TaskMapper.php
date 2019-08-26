@@ -13,7 +13,7 @@ class TaskMapper
     public function __construct()
     {
         $this->db = Config::get('db');
-        if (! $this->db) {
+        if (!$this->db) {
             throw new ConfigException('PDO DB connection object missing in configuration.');
         }
     } // __construct
@@ -30,7 +30,7 @@ class TaskMapper
     public function getByID($id)
     {
         $taskRecord = $this->load($id);
-        if (! $taskRecord) {
+        if (!$taskRecord) {
             return false;
         }
 
@@ -61,16 +61,16 @@ class TaskMapper
      */
     public function getAllBy($args = null, $pagination = null)
     {
-        if (! $pagination || (is_array($pagination) && count($pagination) === 0)) {
+        if (!$pagination || (is_array($pagination) && count($pagination) === 0)) {
             $pagination = array(
                 'tasks_per_page' => 0, // CHECK: Config::DEFAULT_DB_TASK_QUERY_LIMIT
                 'page' => 1
             );
         } else {
-            if (! isset($pagination['page']) || (int) $pagination['page'] <= 0) {
+            if (!isset($pagination['page']) || (int) $pagination['page'] <= 0) {
                 $pagination['page'] = 1;
             }
-            if (! isset($pagination['tasks_per_page'])) {
+            if (!isset($pagination['tasks_per_page'])) {
                 $pagination['tasks_per_page'] = Config::DEFAULT_DB_TASK_QUERY_LIMIT;
             }
         }
@@ -93,7 +93,7 @@ class TaskMapper
                 if ($fieldName === 'meta_data') {
                     foreach ($args['meta_data'] as $key => $metaQueryData) {
                         if (is_array($metaQueryData)) {
-                            if (! isset($metaQueryData['value'])) {
+                            if (!isset($metaQueryData['value'])) {
                                 continue;
                             }
                             $value = $metaQueryData['value'];
@@ -249,12 +249,14 @@ EOT;
      * @since 0.1
      *
      * @param Task $task Parent task object.
+     * @param bool $processable Processable child tasks
+     *     only (pending/processing, default: true)?
      *
      * @return Task|bool Next child task of false if nonexistent.
      */
-    public function getNextChild(Task $task)
+    public function getNextChild(Task $task, $processable = true)
     {
-        if (! $task->getID()) {
+        if (!$task->getID()) {
             return false;
         }
 
@@ -262,15 +264,22 @@ EOT;
             'parent_id' => $task->getID()
         );
 
-        $query = sprintf(
-            'SELECT id FROM %s
-                WHERE parent_id=:parent_id AND (status="%2$s" OR status="%3$s")
-                ORDER BY CASE WHEN status="%3$s" THEN 1 ELSE 2 END, id ASC
-                LIMIT 1',
-            Config::QDB_TASK_TABLE,
-            Task::STATUS_PENDING,
-            Task::STATUS_PROCESSING
-        );
+        if ($processable) {
+            $query = sprintf(
+                'SELECT id FROM %s
+                    WHERE parent_id=:parent_id AND (status="%2$s" OR status="%3$s")
+                    ORDER BY CASE WHEN status="%3$s" THEN 1 ELSE 2 END, id ASC
+                    LIMIT 1',
+                Config::QDB_TASK_TABLE,
+                Task::STATUS_PENDING,
+                Task::STATUS_PROCESSING
+            );
+        } else {
+            $query = sprintf(
+                'SELECT id FROM %s WHERE parent_id=:parent_id ORDER BY id ASC LIMIT 1',
+                Config::QDB_TASK_TABLE
+            );
+        }
 
         try {
             $stmt = $this->db->prepare($query);
@@ -332,7 +341,7 @@ EOT;
             throw new DBException(sprintf('PDO Error: %s', $e->getMessage()), null, $e); // @codeCoverageIgnore
         }
 
-        if (! $taskID) {
+        if (!$taskID) {
             $task->setID($this->db->lastInsertId());
         }
 
@@ -355,7 +364,7 @@ EOT;
     public function delete(Task $task)
     {
         $taskID = $task->getID();
-        if (! $taskID) {
+        if (!$taskID) {
             return false;
         }
 
@@ -371,6 +380,16 @@ EOT;
         return true;
     } // delete
 
+    /**
+     * Delete expired tasks.
+     *
+     * @since 1.0
+     *
+     * @param string $expiredBefore Date/Time statement for strtotime.
+     *
+     * @return mixed[] Array with actual expiry date/time string and number of
+     *     deleted main tasks.
+     */
     public function deleteExpiredTasks($expiredBefore)
     {
         $expiryTS = strtotime($expiredBefore);

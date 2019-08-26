@@ -150,4 +150,15 @@ class TaskTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(Task::STATUS_FAILED, $parent->getStatus());
         $this->assertTrue($parent->getChildFailed());
     } // testTaskGetsFailedStatusDueToChildFailure
+
+    public function testIdsOfDeletedTasksMatchesGivenArray()
+    {
+        $parentTaskID = 15;
+        $expectedDeletedIDs = [15, 16, 17, 18, 19];
+
+        $parent = new Task($this->defaultTaskWorkerClassName);
+        $parent->setID($parentTaskID);
+
+        $this->assertEquals($expectedDeletedIDs, $parent->delete());
+    } // testIdsOfDeletedTasksMatchesGivenArray
 } // class TaskTest

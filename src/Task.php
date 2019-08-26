@@ -40,11 +40,11 @@ class Task
      *
      * @since 0.1
      *
-     * @return int|bool ID or false if not set yet.
+     * @return int|null ID or null if not set yet.
      */
     public function getID()
     {
-        return $this->ID;
+        return isset($this->ID) ? (int) $this->ID : null;
     } // getID
 
     /**
@@ -237,7 +237,7 @@ class Task
      */
     public function setID($id)
     {
-        $this->ID = $id;
+        $this->ID = is_null($id) ? null : (int) $id;
     } // setID
 
     /**
@@ -263,7 +263,7 @@ class Task
      */
     public function setQueueGroup($queueGroup)
     {
-        if (! $this->parent) {
+        if (!$this->parent) {
             $this->queueGroup = $queueGroup ? $queueGroup : Config::DEFAULT_QUEUE_GROUP;
         }
     } // setQueueGroup
@@ -336,7 +336,7 @@ class Task
      */
     public function setTimeout($timeout)
     {
-        if (! $timeout) {
+        if (!$timeout) {
             $this->timeout = false;
             return;
         }
@@ -367,14 +367,14 @@ class Task
     public function updateLastProcessed()
     {
         $this->lastProcessed = date('Y-m-d H:i:s');
-        if (! $this->firstProcessed) {
+        if (!$this->firstProcessed) {
             $this->firstProcessed = $this->lastProcessed;
         }
     } // updateLastProcessed
 
     public function addChild($task)
     {
-        if (! $this->ID) {
+        if (!$this->ID) {
             throw new \UnexpectedValueException('ID missing (parent task has not been saved yet).');
         }
 
@@ -444,7 +444,7 @@ class Task
      */
     public function populate($data)
     {
-        if (! is_array($data) || count($data) == 0) {
+        if (!is_array($data) || count($data) == 0) {
             return;
         }
 
@@ -503,17 +503,26 @@ class Task
      * Recursively delete the task's and all child task's data.
      *
      * @since 0.1
+     *
+     * @param int[] $deletedIDs IDs of deleted (child) tasks.
+     *
+     * @return int[] Complete sorted ID array of deleted (child) tasks.
      */
-    public function delete()
+    public function delete(&$deletedIDs = [])
     {
         $taskMapper = new TaskMapper();
 
-        while ($childTask = $taskMapper->getNextChild($this)) {
-            $childTask->delete();
+        while ($childTask = $taskMapper->getNextChild($this, false)) {
+            $childTask->delete($deletedIDs);
         }
 
         $taskMapper->delete($this);
+        $deletedIDs[] = $this->getID();
         $this->setID(null);
+
+        sort($deletedIDs);
+
+        return $deletedIDs;
     } // delete
 
     /**
@@ -521,7 +530,7 @@ class Task
      *
      * @since 0.1
      *
-     * @param $jsonString JSON-String.
+     * @param string $jsonString JSON string.
      *
      * @return Associative array.
      */

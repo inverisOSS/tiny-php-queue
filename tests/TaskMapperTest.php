@@ -334,9 +334,32 @@ class TaskMapperTest extends \PHPUnit\DbUnit\TestCase
         $this->assertEquals(Task::STATUS_FAILED, $mainTask->getStatus());
     } // testStatusOfParentTasksIsUpdatedWhenChildTaskFails
 
+    public function testNextProcessableChildIdEqualsGivenId()
+    {
+        $mainTaskID = 15;
+        $expectedChildID = 17;
+
+        $mainTask = $this->mapper->getByID($mainTaskID);
+        $childTask = $this->mapper->getNextChild($mainTask);
+
+        $this->assertEquals($expectedChildID, $childTask->getID());
+    } // testNextProcessableChildIdEqualsGivenId
+
+    public function testNextArbitraryChildIdEqualsGivenId()
+    {
+        $mainTaskID = 15;
+        $expectedChildID = 16;
+
+        $mainTask = $this->mapper->getByID($mainTaskID);
+        $childTask = $this->mapper->getNextChild($mainTask, false);
+
+        $this->assertEquals($expectedChildID, $childTask->getID());
+    } // testNextArbitraryChildIdEqualsGivenId
+
     public function testNumberOfDeletedExpiredTasksMatchesGivenNumber()
     {
         $deleted = $this->mapper->deleteExpiredTasks('2016-10-04');
         $this->assertEquals(2, $deleted['deleted_count']);
     } // testNumberOfDeletedExpiredTasksMatchesGivenNumber
+
 } // class TaskMapperTest

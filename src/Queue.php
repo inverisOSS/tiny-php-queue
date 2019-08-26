@@ -37,7 +37,7 @@ class Queue
      */
     public function getTask($processor)
     {
-        if (! $processor instanceof Processor) {
+        if (!$processor instanceof Processor) {
             throw new \InvalidArgumentException('No valid Processor object passed.');
         }
 

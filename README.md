@@ -169,6 +169,17 @@ while ($task = $queue->getTask($processor)) {
 }
 ```
 
+### Cleanup
+
+```php
+use inverisOSS\TinyPHPQueue\Queue;
+
+$queue = new Queue();
+
+// Delete all tasks (including child tasks) older than 6 months.
+$queue->cleanup('6 months ago');
+```
+
 ## License
 
 Apache License 2.0
